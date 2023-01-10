@@ -8,18 +8,19 @@ FROM python:3.8.5
 WORKDIR /root/run_environment/
 
 #Clone the github repository to the working directory in the Docker environment
-RUN git clone https://github.com/sagebas/sagebas .
+#RUN git clone https://github.com/sagebas/sagebas .
 
 # Take all the files located in the current directory and copy them into the Docker image
 COPY . .
 
 # Install the Python packages we'll use
-RUN pip install --no-cache-dir -r ./requirements.txt
+RUN python -m pip install --upgrade pip
+RUN python -m pip install --no-cache-dir -r ./requirements.txt
 
 # Alter permissions
 RUN chmod +x ./GGF_RTF.py
 RUN chmod +x ./GGF_RTFH.py
-RUN chmod +x ./hello_world.py
+#RUN chmod +x ./hello_world.py
 
 # I believe this updates $PATH to include /usr/bin/python3, which is required before running Python scripts
 ENTRYPOINT [ "python3" ]
