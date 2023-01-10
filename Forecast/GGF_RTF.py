@@ -142,9 +142,10 @@ output_version_identifier = 'BRTFv2p3'#Version string, for author's reference.
 
 #%% Load packages.
 
-#Import these packages.
-import sys
 import os
+# Import these packages.
+import sys
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'#suppresses tensorflow warnings.
 import json
 import numpy as np
@@ -154,7 +155,6 @@ import math
 import pickle
 import datetime as dt
 from tensorflow import keras
-import pandas
 import requests
 import pandas as pd
 
@@ -220,7 +220,7 @@ for i_LT in range(len(LT_bin_centroids_datetime)):
 #Manually alter the last element of the LT bin end hour to be 1, rather than 0.
 # This occurs because the ending date of the LT_bin_edges variable is the start 
 # (i.e. hour zero) of the next day, rather than hour 24 on the same day.
-if(LT_bin_ends_day_fraction[len(LT_bin_ends_day_fraction)-1,0] == 0):
+if LT_bin_ends_day_fraction[len(LT_bin_ends_day_fraction) - 1,0] == 0:
     LT_bin_ends_day_fraction[len(LT_bin_ends_day_fraction)-1,0] = 1.0
 #End conditional: alter the last element of the LT bin ends if you need to.
 
@@ -254,7 +254,7 @@ with open(MO_API_key_filename, 'r') as file:
 
 #Create a variable for the current time, and convert to UTC if daylight saving
 # is in effect.
-if(time.localtime().tm_isdst > 0):
+if time.localtime().tm_isdst > 0:
     current_time = np.datetime64(dt.datetime.now()) - np.timedelta64(1,'h')#scalar datetime64 object.
 else:
     current_time = np.datetime64(dt.datetime.now())#scalar datetime64 object.
@@ -289,7 +289,7 @@ MO_API_mag_url_path = MO_API_url_base_path + 'v1/data/rtsw_magnetometer' + '?fro
 MO_API_mag_response = requests.get(MO_API_mag_url_path, headers={"apikey": MO_API_key, "accept": "application/json"})
 
 #Determine if the API is being accessed properly, and exit the program if not.
-if(MO_API_mag_response.status_code != 200):
+if MO_API_mag_response.status_code != 200:
     print("exec_query: error in query submitted via requests.get()")
     print("            error code returned: ", MO_API_mag_response.status_code)
     sys.exit(1)
@@ -299,14 +299,14 @@ if(MO_API_mag_response.status_code != 200):
 MO_API_mag_data_json = MO_API_mag_response.json()['data']
 
 #Extract data.
-MO_API_mag_data_df = pd.DataFrame([{\
-         'timestamp': x['timestamp'],\
-         'active': x['active'],\
-         'source': x['source'],\
-         'bx_gsm': x['bx_gsm'],\
-         'by_gsm': x['by_gsm'],\
-         'bz_gsm': x['bz_gsm']\
-         } for x in MO_API_mag_data_json])#size [minutes in past day (ish) by 6 columns].
+MO_API_mag_data_df = pd.DataFrame([{
+    'timestamp': x['timestamp'],
+    'active': x['active'],
+    'source': x['source'],
+    'bx_gsm': x['bx_gsm'],
+    'by_gsm': x['by_gsm'],
+    'bz_gsm': x['bz_gsm']
+} for x in MO_API_mag_data_json])#size [minutes in past day (ish) by 6 columns].
 #End indenting.
 
 # ----------------------- Import Met Office API plasma data.
@@ -322,13 +322,13 @@ MO_API_plasma_response = requests.get(MO_API_plasma_url_path, headers={"apikey":
 MO_API_plasma_data_json = MO_API_plasma_response.json()['data']
 
 #Extract data.
-MO_API_plasma_data_df = pd.DataFrame([{\
-         'timestamp': x['timestamp'],\
-         'active': x['active'],\
-         'source': x['source'],\
-         'proton_speed': x['proton_speed'],\
-         'proton_density': x['proton_density']\
-         } for x in MO_API_plasma_data_json])#size [minutes in past day (ish) by 5 columns].
+MO_API_plasma_data_df = pd.DataFrame([{
+    'timestamp': x['timestamp'],
+    'active': x['active'],
+    'source': x['source'],
+    'proton_speed': x['proton_speed'],
+    'proton_density': x['proton_density']
+} for x in MO_API_plasma_data_json])#size [minutes in past day (ish) by 5 columns].
 #End indenting.
 
 # ----------------------- Post-processing, for all Met Office API dataframes.
@@ -368,18 +368,18 @@ for i_t in range(len(MO_API_plasma_times)):
     
     #If there's more than two duplicate elements, then the code below will not 
     # work, so flag that occurrence.
-    if(len(index_same_time) > 2):
+    if len(index_same_time) > 2:
         print('Multiple duplicate entries in MO_API_plasma_times.')
     #End conditional: data check.
     
     #If there's more than one of this time, flag the non-DSCOVR time(s) for later removal.
-    if(len(index_same_time) > 1):
+    if len(index_same_time) > 1:
         index_DSCOVR_element_mask = np.flatnonzero(MO_API_plasma_data_df['source'].iloc[index_same_time] != 'DSCOVR')
         
         #If there's no non-DSCOVR satellite, then it's a duplication of the 
         # temporal record, rather than an instance of both satellites being 
         # 'active', so we just take the first of the duplicates in that case.
-        if(len(index_DSCOVR_element_mask) == 0):
+        if len(index_DSCOVR_element_mask) == 0:
             index_DSCOVR_element_mask = 0
         #End conditional: data check.
         
@@ -395,18 +395,18 @@ for i_t in range(len(MO_API_mag_times)):
     
     #If there's more than two duplicate elements, then the code below will not 
     # work, so flag that occurrence.
-    if(len(index_same_time) > 2):
+    if len(index_same_time) > 2:
         print('Multiple duplicate entries in MO_API_mag_times.')
     #End conditional: data check.
     
     #If there's more than one of this time, flag the non-DSCOVR time(s) for later removal.
-    if(len(index_same_time) > 1):
+    if len(index_same_time) > 1:
         index_DSCOVR_element_mask = np.flatnonzero(MO_API_mag_data_df['source'].iloc[index_same_time] != 'DSCOVR')
         
         #If there's no non-DSCOVR satellite, then it's a duplication of the 
         # temporal record, rather than an instance of both satellites being 
         # 'active', so we just take the first of the duplicates in that case.
-        if(len(index_DSCOVR_element_mask) == 0):
+        if len(index_DSCOVR_element_mask) == 0:
             index_DSCOVR_element_mask = 0
         #End conditional: data check.
         
@@ -440,7 +440,7 @@ MO_API_sw_density = np.delete(MO_API_sw_density,index_of_MO_API_plasma_times_to_
 # match in the Met Office plasma API records.
 index_MO_API_mag_data_to_remove = []#pertains to rows of MO_API_plasma_data_df and MO_API_plasma_times.
 for i_t in range(len(MO_API_mag_times)):
-    if(np.all(MO_API_plasma_times != MO_API_mag_times[i_t])):
+    if np.all(MO_API_plasma_times != MO_API_mag_times[i_t]):
         index_MO_API_mag_data_to_remove.append(i_t)
     #End conditional: if this MO mag API time has no match in the entire MO plasma API temporal dataset, then flag it for removal.
 #End loop over Met Office temporal data.
@@ -454,7 +454,7 @@ MO_API_IMF_Bz = np.delete(MO_API_IMF_Bz,index_MO_API_mag_data_to_remove)
 # downsized mag record.
 index_MO_API_plasma_data_to_remove = []#pertains to rows of MO_API_plasma_data_df and MO_API_plasma_times.
 for i_t in range(len(MO_API_plasma_times)):
-    if(np.all(MO_API_mag_times != MO_API_plasma_times[i_t])):
+    if np.all(MO_API_mag_times != MO_API_plasma_times[i_t]):
         index_MO_API_plasma_data_to_remove.append(i_t)
     #End conditional: if this MO plasma API time has no match in the entire MO mag API temporal dataset, then flag it for removal.
 #End loop over Met Office temporal data.
@@ -465,7 +465,7 @@ MO_API_sw_density = np.delete(MO_API_sw_density,index_MO_API_plasma_data_to_remo
 
 #Double-check equivalence, since we will use the plasma temporal records as a 
 # temporal reference for the mag data henceforth.
-if(np.any(MO_API_plasma_times != MO_API_mag_times)):
+if np.any(MO_API_plasma_times != MO_API_mag_times):
     print('Warning: temporal errors in Met Office RSTW API.')
 #End conditional: data check.
 
@@ -490,9 +490,9 @@ if(np.any(MO_API_plasma_times != MO_API_mag_times)):
 #Interpolate over the (nan) gaps in the RTSW speed data, 
 # using the command '.astype(float)' to convert the datetime64 values to 
 # ordinal seconds.
-MO_API_sw_speed_interpolated = np.interp(\
-    MO_API_plasma_times.astype(float),\
-    MO_API_plasma_times[np.nonzero(~np.isnan(MO_API_sw_speed))[0]].astype(float),\
+MO_API_sw_speed_interpolated = np.interp(
+    MO_API_plasma_times.astype(float),
+    MO_API_plasma_times[np.nonzero(~np.isnan(MO_API_sw_speed))[0]].astype(float),
     MO_API_sw_speed[np.nonzero(~np.isnan(MO_API_sw_speed))[0]])#np array of floats, size [(minutes in day) by 0]
 #End indenting for variable definition.
 
@@ -524,7 +524,7 @@ for i_t in range(len(MO_API_plasma_times)):
     MO_API_plasma_times_bow_shock_nose_plus10min[i_t] = MO_API_plasma_times[i_t] + np.timedelta64(np.int64(np.round(ballistic_propagation_in_seconds)),'s') + np.timedelta64(10,'m')#scalar datetime64[s] object.
     
     #Check for 'NaT' values, caused by NaN values in the solar wind speed.
-    if(pd.isnull(MO_API_plasma_times_bow_shock_nose[i_t])):
+    if pd.isnull(MO_API_plasma_times_bow_shock_nose[i_t]):
         print('Warning: NaT values encountered in temporal propagation to bow shock nose.')
     #End conditional: data check.
 #End loop over each RTSW storm days epoch.
@@ -634,9 +634,9 @@ for i_station in range(3):
     #Loop over each time element, and convert the BGS station local time to 
     # ordinal fraction of the day.
     for i_time, time_element in enumerate(BGS_single_station_shifted_times_regular_grid_with_local_time_alteration):
-        BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_time,i_station] = datetime.timedelta(\
-            hours=time_element.astype(object).hour,\
-            minutes=time_element.astype(object).minute,\
+        BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_time,i_station] = datetime.timedelta(
+            hours=time_element.astype(object).hour,
+            minutes=time_element.astype(object).minute,
             seconds=time_element.astype(object).second).total_seconds()/seconds_per_day
     #End loop over each time element of the recent solar wind data subset.
 #End loop over the three BGS stations.
@@ -653,7 +653,7 @@ model_prediction_flags = np.empty([np.shape(GGF_IMF_Bx_regular_grid)[0],1])#np a
 for i_t in range(np.shape(GGF_times_regular_grid)[0]):
     #Choose which model you will use to predict this temporal element of the 
     # forecast span, dependent on what solar wind measurements are available.
-    if(np.isnan(GGF_IMF_Bx_regular_grid[i_t]) or np.isnan(GGF_sw_speed_regular_grid[i_t])):
+    if np.isnan(GGF_IMF_Bx_regular_grid[i_t]) or np.isnan(GGF_sw_speed_regular_grid[i_t]):
         #If the magnetic field measurements do not exist for this epoch, we
         # forecast a null value, and assign a flag value indicating this.
         model_predictions_all_stations_all_cmpnts_all_ensemble[i_t,:,:,:] = np.nan
@@ -662,13 +662,13 @@ for i_t in range(np.shape(GGF_times_regular_grid)[0]):
         #Skip the rest of this loop's iteration.
         continue#pertains to loop over i_t.
         
-    elif(np.invert(np.isnan(GGF_IMF_Bx_regular_grid[i_t])) & np.invert(np.isnan(GGF_sw_speed_regular_grid[i_t]))):
+    elif np.invert(np.isnan(GGF_IMF_Bx_regular_grid[i_t])) & np.invert(np.isnan(GGF_sw_speed_regular_grid[i_t])):
         #If we have both magnetic field and plasma velocity values, then 
         # we can use the epsilon-driven model for the forecast.
         
         #Here, we flag if the model values came from an interpolated span of 
         # data, or if there were NaNs nearby in the pre-interpolation data.
-        if(nan_indicator_series_regular_grid[i_t] > 0.5):
+        if nan_indicator_series_regular_grid[i_t] > 0.5:
             model_prediction_flags[i_t] = 1
         else:
             model_prediction_flags[i_t] = 0
@@ -690,10 +690,10 @@ for i_t in range(np.shape(GGF_times_regular_grid)[0]):
     IMF_B_magnitude = math.sqrt((GGF_IMF_Bx_regular_grid[i_t] ** 2) + (GGF_IMF_By_regular_grid[i_t] ** 2) + (GGF_IMF_Bz_regular_grid[i_t] ** 2))
     
     #Convert from nT to Tesla.
-    IMF_B_magnitude_in_Tesla = IMF_B_magnitude * (1e-9)#Converted to T, from nT. #np array of floats, size [minutes in past day (ish) by 0].
+    IMF_B_magnitude_in_Tesla = IMF_B_magnitude * 1e-9  #Converted to T, from nT. #np array of floats, size [minutes in past day (ish) by 0].
     
     #Convert SWvx to SI units.
-    speed_in_m_per_s = GGF_sw_speed_regular_grid[i_t] * (1e3)#Converted to m/s from km/s. #np array of floats, size [minutes in past day (ish) by 0].
+    speed_in_m_per_s = GGF_sw_speed_regular_grid[i_t] * 1e3  #Converted to m/s from km/s. #np array of floats, size [minutes in past day (ish) by 0].
     
     #Assign a length-scale factor of 7Re.
     l_nought = 7 * (6371.2 * 1000) #scalar float.
@@ -715,7 +715,7 @@ for i_t in range(np.shape(GGF_times_regular_grid)[0]):
         # Note that we are basing the model coefficient interpolation on 
         # the LT bin centroids: it dose not matter which LT bin the station
         # is actually 'within'.
-        if(BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_t,i_station] < LT_bin_centroids_day_fraction[0]):
+        if BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_t,i_station] < LT_bin_centroids_day_fraction[0]:
             #Here, the BGS station is between midnight and the centroid LT
             # of the first bin. That is, the BGS LT is near zero.
             
@@ -732,7 +732,7 @@ for i_t in range(np.shape(GGF_times_regular_grid)[0]):
             # lines of code to be activated.
             index_past_LT_bin = 23
             index_future_LT_bin = 0
-        elif(BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_t,i_station] > LT_bin_centroids_day_fraction[-1]):
+        elif BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_t,i_station] > LT_bin_centroids_day_fraction[-1]:
             #Here, the BGS station is between the centroid LT of the last 
             # bin, and midnight. That is, the BGS LT is near 1.
             
@@ -777,9 +777,9 @@ for i_t in range(np.shape(GGF_times_regular_grid)[0]):
                 # LT of the BGS station.
                 interpolated_model_parameter_vector = np.empty([np.shape(model_coefficients_all_stations_all_components_all_ensemble)[3],1])#size [6 (model parameters) by 1].
                 for i_parameter in range(np.shape(model_coefficients_all_stations_all_components_all_ensemble)[3]):
-                    interpolated_model_parameter_vector[i_parameter,0] = np.interp(\
-                        BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_t,i_station],\
-                        np.array([past_LT_bin_centroid[0],future_LT_bin_centroid[0]]),\
+                    interpolated_model_parameter_vector[i_parameter,0] = np.interp(
+                        BGS_stations_shifted_times_regular_grid_local_time_day_fraction[i_t,i_station],
+                        np.array([past_LT_bin_centroid[0],future_LT_bin_centroid[0]]),
                         np.array([past_LT_bin_model_parameter_vector[i_parameter],future_LT_bin_model_parameter_vector[i_parameter]]))
                     #End indenting for this variable.
                 #End loop over model parameters.
@@ -792,14 +792,14 @@ for i_t in range(np.shape(GGF_times_regular_grid)[0]):
                 #End indenting for this variable.
                 
                 #Create model data kernel vector.
-                data_kernel = np.array([\
-                    1,\
-                    np.sin(((BGS_date_DOY - 79) * (2 * np.pi))/365.25),\
-                    np.cos(((BGS_date_DOY - 79) * (2 * np.pi))/365.25),\
-                    sw_coupling_function,\
-                    np.sin(((BGS_date_DOY - 79) * (2 * np.pi))/365.25) * sw_coupling_function,\
-                    np.cos(((BGS_date_DOY - 79) * (2 * np.pi))/365.25) * sw_coupling_function,\
-                    ])#size [6 parameters by 0]
+                data_kernel = np.array([
+                    1,
+                    np.sin(((BGS_date_DOY - 79) * (2 * np.pi))/365.25),
+                    np.cos(((BGS_date_DOY - 79) * (2 * np.pi))/365.25),
+                    sw_coupling_function,
+                    np.sin(((BGS_date_DOY - 79) * (2 * np.pi))/365.25) * sw_coupling_function,
+                    np.cos(((BGS_date_DOY - 79) * (2 * np.pi))/365.25) * sw_coupling_function,
+                ])#size [6 parameters by 0]
                 #End indentation for this variable.
                 
                 #Make and store data prediction.
@@ -823,9 +823,9 @@ omn_train_params=["Bx", "By", "Bz", "Vx", "Np"]
 
 #Create a dataframe of the substorm input data.
 substorm_forecast_data_df_part1 = pd.DataFrame(MO_API_plasma_times_bow_shock_nose_plus10min[:,0][:,np.newaxis],columns=['propagated_time_tag'])
-substorm_forecast_data_df_part2 = pd.DataFrame(np.concatenate((MO_API_IMF_Bx[:,np.newaxis],MO_API_IMF_By[:,np.newaxis],\
-    MO_API_IMF_Bz[:,np.newaxis],MO_API_sw_speed[:,np.newaxis],MO_API_sw_density[:,np.newaxis]),\
-    axis=1),columns=['bx','by','bz','speed','density'])
+substorm_forecast_data_df_part2 = pd.DataFrame(np.concatenate((MO_API_IMF_Bx[:,np.newaxis],MO_API_IMF_By[:,np.newaxis],
+                                                               MO_API_IMF_Bz[:,np.newaxis],MO_API_sw_speed[:,np.newaxis],MO_API_sw_density[:,np.newaxis]),
+                                                              axis=1),columns=['bx','by','bz','speed','density'])
 substorm_forecast_data_df = pd.concat([substorm_forecast_data_df_part1, substorm_forecast_data_df_part2], axis=1)#size [minutes in past day (ish) by 7 columns].
 
 #Convert timestamps to datetime.
@@ -891,7 +891,7 @@ substorm_onset_probability_series = np.ones(np.shape(GGF_times_regular_grid)) * 
 #Determine the length of the forecast span: if it's more than an hour, we need 
 # to replace the values over 60 min with NaNs. Otherwise, the substorm 
 # probability value can fill the GGF forecast span (as defined above).
-if(np.timedelta64(GGF_times_regular_grid[-1] - GGF_times_regular_grid[0],'m') / np.timedelta64(1,'m') > 60):
+if np.timedelta64(GGF_times_regular_grid[-1] - GGF_times_regular_grid[0], 'm') / np.timedelta64(1, 'm') > 60:
     #In this case, the forecast span is more than one hour.
     
     #Find the index of the forecast span which is just over the one-hour-long 
@@ -909,7 +909,7 @@ if(np.timedelta64(GGF_times_regular_grid[-1] - GGF_times_regular_grid[0],'m') / 
 real_time_solar_wind_data_output_filename = os.path.join(WORKDIR,'Temp_storage_for_output_GGF_forecast','real_time_magnetic_field_forecast_from_program_GGF_RTF_version_' + output_version_identifier + '.dat')
 
 #Delete any existing data file of solar wind-based geomagnetic forecast outputs.
-if(os.path.isfile(real_time_solar_wind_data_output_filename)):
+if os.path.isfile(real_time_solar_wind_data_output_filename):
     os.remove(real_time_solar_wind_data_output_filename)
 #End:conditional: delete any already-existing output files, to avoid appending data to them.
 
@@ -920,10 +920,10 @@ file_id = open(real_time_solar_wind_data_output_filename, 'wb')
 for i_t in range(np.shape(mean_model_predictions_all_stations_all_cmpnts)[0]):
     #Format the date string.
     date_string = '{i_t_day:02d}-{i_t_month:02d}-{i_t_year}  {i_t_hour:02d}:{i_t_min:02d}'\
-        .format(i_t_day = GGF_times_regular_grid[i_t].astype(datetime.datetime).day,\
-                i_t_month = GGF_times_regular_grid[i_t].astype(datetime.datetime).month,\
-                i_t_year = GGF_times_regular_grid[i_t].astype(datetime.datetime).year,\
-                i_t_hour = GGF_times_regular_grid[i_t].astype(datetime.datetime).hour,\
+        .format(i_t_day = GGF_times_regular_grid[i_t].astype(datetime.datetime).day,
+                i_t_month = GGF_times_regular_grid[i_t].astype(datetime.datetime).month,
+                i_t_year = GGF_times_regular_grid[i_t].astype(datetime.datetime).year,
+                i_t_hour = GGF_times_regular_grid[i_t].astype(datetime.datetime).hour,
                 i_t_min = GGF_times_regular_grid[i_t].astype(datetime.datetime).minute)
     #End indenting for this string formatting.
     
@@ -938,35 +938,35 @@ for i_t in range(np.shape(mean_model_predictions_all_stations_all_cmpnts)[0]):
         '{esk_x_max:.2f}       {esk_y_max:.2f}       {esk_z_max:.2f}       ' + \
         '{had_x_max:.2f}       {had_y_max:.2f}       {had_z_max:.2f}       ' + \
         '{ler_x_max:.2f}       {ler_y_max:.2f}       {ler_z_max:.2f}'
-    data_string = data_string.format(data_flag = model_prediction_flags[i_t,0].astype(int),\
-                onset_probability = substorm_onset_probability_series[i_t],\
-                esk_x = mean_model_predictions_all_stations_all_cmpnts[i_t,0,0],\
-                esk_y = mean_model_predictions_all_stations_all_cmpnts[i_t,0,1],\
-                esk_z = mean_model_predictions_all_stations_all_cmpnts[i_t,0,2],\
-                had_x = mean_model_predictions_all_stations_all_cmpnts[i_t,1,0],\
-                had_y = mean_model_predictions_all_stations_all_cmpnts[i_t,1,1],\
-                had_z = mean_model_predictions_all_stations_all_cmpnts[i_t,1,2],\
-                ler_x = mean_model_predictions_all_stations_all_cmpnts[i_t,2,0],\
-                ler_y = mean_model_predictions_all_stations_all_cmpnts[i_t,2,1],\
-                ler_z = mean_model_predictions_all_stations_all_cmpnts[i_t,2,2],\
-                esk_x_min = min_model_predictions_all_stations_all_cmpnts[i_t,0,0],\
-                esk_y_min = min_model_predictions_all_stations_all_cmpnts[i_t,0,1],\
-                esk_z_min = min_model_predictions_all_stations_all_cmpnts[i_t,0,2],\
-                had_x_min = min_model_predictions_all_stations_all_cmpnts[i_t,1,0],\
-                had_y_min = min_model_predictions_all_stations_all_cmpnts[i_t,1,1],\
-                had_z_min = min_model_predictions_all_stations_all_cmpnts[i_t,1,2],\
-                ler_x_min = min_model_predictions_all_stations_all_cmpnts[i_t,2,0],\
-                ler_y_min = min_model_predictions_all_stations_all_cmpnts[i_t,2,1],\
-                ler_z_min = min_model_predictions_all_stations_all_cmpnts[i_t,2,2],\
-                esk_x_max = max_model_predictions_all_stations_all_cmpnts[i_t,0,0],\
-                esk_y_max = max_model_predictions_all_stations_all_cmpnts[i_t,0,1],\
-                esk_z_max = max_model_predictions_all_stations_all_cmpnts[i_t,0,2],\
-                had_x_max = max_model_predictions_all_stations_all_cmpnts[i_t,1,0],\
-                had_y_max = max_model_predictions_all_stations_all_cmpnts[i_t,1,1],\
-                had_z_max = max_model_predictions_all_stations_all_cmpnts[i_t,1,2],\
-                ler_x_max = max_model_predictions_all_stations_all_cmpnts[i_t,2,0],\
-                ler_y_max = max_model_predictions_all_stations_all_cmpnts[i_t,2,1],\
-                ler_z_max = max_model_predictions_all_stations_all_cmpnts[i_t,2,2])
+    data_string = data_string.format(data_flag = model_prediction_flags[i_t,0].astype(int),
+                                     onset_probability = substorm_onset_probability_series[i_t],
+                                     esk_x = mean_model_predictions_all_stations_all_cmpnts[i_t,0,0],
+                                     esk_y = mean_model_predictions_all_stations_all_cmpnts[i_t,0,1],
+                                     esk_z = mean_model_predictions_all_stations_all_cmpnts[i_t,0,2],
+                                     had_x = mean_model_predictions_all_stations_all_cmpnts[i_t,1,0],
+                                     had_y = mean_model_predictions_all_stations_all_cmpnts[i_t,1,1],
+                                     had_z = mean_model_predictions_all_stations_all_cmpnts[i_t,1,2],
+                                     ler_x = mean_model_predictions_all_stations_all_cmpnts[i_t,2,0],
+                                     ler_y = mean_model_predictions_all_stations_all_cmpnts[i_t,2,1],
+                                     ler_z = mean_model_predictions_all_stations_all_cmpnts[i_t,2,2],
+                                     esk_x_min = min_model_predictions_all_stations_all_cmpnts[i_t,0,0],
+                                     esk_y_min = min_model_predictions_all_stations_all_cmpnts[i_t,0,1],
+                                     esk_z_min = min_model_predictions_all_stations_all_cmpnts[i_t,0,2],
+                                     had_x_min = min_model_predictions_all_stations_all_cmpnts[i_t,1,0],
+                                     had_y_min = min_model_predictions_all_stations_all_cmpnts[i_t,1,1],
+                                     had_z_min = min_model_predictions_all_stations_all_cmpnts[i_t,1,2],
+                                     ler_x_min = min_model_predictions_all_stations_all_cmpnts[i_t,2,0],
+                                     ler_y_min = min_model_predictions_all_stations_all_cmpnts[i_t,2,1],
+                                     ler_z_min = min_model_predictions_all_stations_all_cmpnts[i_t,2,2],
+                                     esk_x_max = max_model_predictions_all_stations_all_cmpnts[i_t,0,0],
+                                     esk_y_max = max_model_predictions_all_stations_all_cmpnts[i_t,0,1],
+                                     esk_z_max = max_model_predictions_all_stations_all_cmpnts[i_t,0,2],
+                                     had_x_max = max_model_predictions_all_stations_all_cmpnts[i_t,1,0],
+                                     had_y_max = max_model_predictions_all_stations_all_cmpnts[i_t,1,1],
+                                     had_z_max = max_model_predictions_all_stations_all_cmpnts[i_t,1,2],
+                                     ler_x_max = max_model_predictions_all_stations_all_cmpnts[i_t,2,0],
+                                     ler_y_max = max_model_predictions_all_stations_all_cmpnts[i_t,2,1],
+                                     ler_z_max = max_model_predictions_all_stations_all_cmpnts[i_t,2,2])
     #End indenting for this string formatting.
 
     #Collate formatted strings.
